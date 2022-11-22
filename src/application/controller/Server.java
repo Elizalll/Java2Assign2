@@ -1,6 +1,9 @@
 package application.controller;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -10,28 +13,6 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-//public class Server {
-//
-//    public static List<Integer> list =new ArrayList<>();
-//
-//    public static void main(String[] args) {
-//        try {
-//            ServerSocket serverSocket = new ServerSocket(1234);
-//            Socket socket;
-//
-//            while (true) {
-//                socket = serverSocket.accept();
-//                ServerThread thread = new ServerThread(socket);
-//                thread.start();
-//
-//            }
-//        } catch (Exception e) {
-//            // TODO: handle exception
-//            e.printStackTrace();
-//        }
-//    }
-//}
 
 class Server extends Thread {
     public static void main(String[] args) {
@@ -63,7 +44,7 @@ class Server extends Thread {
     Lock l = new ReentrantLock();
     Condition c = l.newCondition();
 
-    String ReadOneSentence(BufferedReader br) throws IOException {
+    String readOneSentence(BufferedReader br) throws IOException {
         String line;
         StringBuilder sb = new StringBuilder();
         while ((line = br.readLine()) != null && !"END".equals(line)) {
@@ -89,11 +70,11 @@ class Server extends Thread {
     public void run() {
         int index = Integer.parseInt(Thread.currentThread().getName());
         int oppIndex = -1;
-        Socket socket = skList.get(index), socket_opp = null;
-        BufferedReader br = brList.get(index), br_opp = null;
-        PrintWriter pw = pwList.get(index), pw_opp = null;
+        Socket socket = skList.get(index), socketOpp = null;
+        BufferedReader br = brList.get(index), brOpp = null;
+        PrintWriter pw = pwList.get(index), pwOpp = null;
         try {
-            System.out.println(ReadOneSentence(br));// First sentence from a client
+            System.out.println(readOneSentence(br)); // First sentence from a client
             pw.write("Welcome to the game.\nEND\n");
             pw.flush();
 
@@ -122,32 +103,32 @@ class Server extends Thread {
             System.out.println(index + " " + oppIndex);
 
             if (oppIndex != -1) {
-                socket_opp = skList.get(oppIndex);
-                br_opp = brList.get(oppIndex);
-                pw_opp = pwList.get(oppIndex);
+                socketOpp = skList.get(oppIndex);
+                brOpp = brList.get(oppIndex);
+                pwOpp = pwList.get(oppIndex);
                 sleep(1000);
                 pw.write("Player 1\nEND\n");
                 pw.flush();
-                pw_opp.write("Player 2\nEND\n");
-                pw_opp.flush();
+                pwOpp.write("Player 2\nEND\n");
+                pwOpp.flush();
 
                 boolean turn = false;
                 String info;
                 String[] info2;
                 int[][] chessBoard = new int[3][3];
                 int i, j, chessNum = 0;
-                boolean winTest = false;
+                boolean winTest;
                 do {
                     turn = !turn;
                     if (turn) {
-                        info = ReadOneSentence(br);
+                        info = readOneSentence(br);
                         if (info.length() == 0) {
-                            pw_opp.write("Oppo Exit");
-                            pw_opp.flush();
+                            pwOpp.write("Oppo Exit");
+                            pwOpp.flush();
                             break;
                         }
                     } else {
-                        info = ReadOneSentence(br_opp);
+                        info = readOneSentence(brOpp);
                         if (info.length() == 0) {
                             pw.write("Oppo Exit");
                             pw.flush();
@@ -170,36 +151,36 @@ class Server extends Thread {
                         if (winTest) {
                             pw.write("Loss\nEND\n");
                             pw.flush();
-                            pw_opp.write("Win\nEND\n");
-                            pw_opp.flush();
+                            pwOpp.write("Win\nEND\n");
+                            pwOpp.flush();
                         } else {
                             pw.write("Continue\nEND\n");
                             pw.flush();
-                            pw_opp.write("Continue\nEND\n");
-                            pw_opp.flush();
+                            pwOpp.write("Continue\nEND\n");
+                            pwOpp.flush();
                             System.out.println("Sent conti to " + index);
                             System.out.println("Sent conti to " + oppIndex);
                         }
                     } else {
-                        pw_opp.write(i + "," + j + "\nEND\n");
-                        pw_opp.flush();
+                        pwOpp.write(i + "," + j + "\nEND\n");
+                        pwOpp.flush();
                         System.out.println("Sent ij to " + turn + " " + oppIndex);
                         if (winTest) {
                             pw.write("Win\nEND\n");
                             pw.flush();
-                            pw_opp.write("Loss\nEND\n");
-                            pw_opp.flush();
+                            pwOpp.write("Loss\nEND\n");
+                            pwOpp.flush();
                         } else {
                             if (chessNum == 9) {
                                 pw.write("Draw\nEND\n");
                                 pw.flush();
-                                pw_opp.write("Draw\nEND\n");
-                                pw_opp.flush();
+                                pwOpp.write("Draw\nEND\n");
+                                pwOpp.flush();
                             } else {
                                 pw.write("Continue\nEND\n");
                                 pw.flush();
-                                pw_opp.write("Continue\nEND\n");
-                                pw_opp.flush();
+                                pwOpp.write("Continue\nEND\n");
+                                pwOpp.flush();
                                 System.out.println("Sent conti to " + index);
                                 System.out.println("Sent conti to " + oppIndex);
                             }
@@ -226,12 +207,12 @@ class Server extends Thread {
                         br.close();
                     if (socket != null)
                         socket.close();
-                    if (pw_opp != null)
-                        pw_opp.close();
-                    if (br_opp != null)
-                        br_opp.close();
-                    if (socket_opp != null)
-                        socket_opp.close();
+                    if (pwOpp != null)
+                        pwOpp.close();
+                    if (brOpp != null)
+                        brOpp.close();
+                    if (socketOpp != null)
+                        socketOpp.close();
                 }
             } catch (SocketException e) {
                 System.out.println("Socket closed");

@@ -1,5 +1,15 @@
 package application.controller;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,18 +19,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ConnectException;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     private static int I_AM;
@@ -47,7 +45,7 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        new socketThread().start();
+        new SocketThread().start();
         game_panel.setOnMouseClicked(event -> {
             if (TURN && GAME_START && !GAME_END) {
                 int x = (int) (event.getX() / BOUND);
@@ -55,13 +53,13 @@ public class Controller implements Initializable {
                 if (refreshBoard(x, y)) {
                     TURN = false;
                     showTurnInfo();
-                    new socketThread2(x, y).start();
+                    new SocketThread2(x, y).start();
                 }
             }
         });
     }
 
-    class socketThread extends Thread {
+    class SocketThread extends Thread {
         @Override
         public void run() {
             try {
@@ -70,7 +68,7 @@ public class Controller implements Initializable {
                 br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 pw.write("Client " + name + " here, I wants to play.\nEND\n");
                 pw.flush();
-                System.out.println(ReadOneSentence(br));// First sentence from the server
+                System.out.println(ReadOneSentence(br)); // First sentence from the server
                 String info;
                 do {
                     info = ReadOneSentence(br);
@@ -101,7 +99,8 @@ public class Controller implements Initializable {
                         System.out.println("info0" + Arrays.toString(infoij));
                         System.out.println("info0" + ReadOneSentence(br));
 
-                        int i = Integer.parseInt(infoij[0]), j = Integer.parseInt(infoij[1]);
+                        int i = Integer.parseInt(infoij[0]);
+                        int j = Integer.parseInt(infoij[1]);
                         if (refreshBoard(i, j)) {
                             TURN = true;
                             showTurnInfo();
@@ -112,7 +111,7 @@ public class Controller implements Initializable {
                 }
             } catch (SocketException e) {
                 System.err.println("Oppo/Server Exit");
-//                    System.err.println(e.getMessage());
+//                System.err.println(e.getMessage());
             } catch (NumberFormatException e) {
                 e.printStackTrace();
                 System.err.println("Opposite log out");
@@ -122,10 +121,10 @@ public class Controller implements Initializable {
         }
     }
 
-    class socketThread2 extends Thread {
+    class SocketThread2 extends Thread {
         int x, y;
 
-        socketThread2(int x, int y) {
+        SocketThread2(int x, int y) {
             this.x = x;
             this.y = y;
         }
@@ -146,9 +145,9 @@ public class Controller implements Initializable {
                             info = ReadOneSentence(br);
                             System.out.println("info2:" + info);
                             infoij = info.split(",");
-                            int i = Integer.parseInt(infoij[0]), j = Integer.parseInt(infoij[1]);
+                            int i = Integer.parseInt(infoij[0]);
+                            int j = Integer.parseInt(infoij[1]);
                             if (refreshBoard(i, j)) {
-
                                 info = ReadOneSentence(br);
                                 System.out.println("info3:" + info);
                                 switch (info) {
@@ -186,7 +185,6 @@ public class Controller implements Initializable {
                         }
                         default -> System.out.println("Wrong in Win switch");
                     }
-
                 } catch (SocketException e) {
                     System.err.println("Oppo/Server Exit");
 //                    System.err.println(e.getMessage());
@@ -214,15 +212,11 @@ public class Controller implements Initializable {
     }
 
     void showTurnInfo() {
-        Platform.runLater(() -> {
-            label.setText("Turn: " + (TURN ? "your" : "opposite"));
-        });
+        Platform.runLater(() -> label.setText("Turn: " + (TURN ? "your" : "opposite")));
     }
 
     void showPlayerInfo() {
-        Platform.runLater(() -> {
-            nameLabel.setText("You are " + (I_AM == 1 ? "Circle" : "Cross"));
-        });
+        Platform.runLater(() -> nameLabel.setText("You are " + (I_AM == 1 ? "Circle" : "Cross")));
     }
 
     void showWinInfo(int win) {
@@ -231,6 +225,7 @@ public class Controller implements Initializable {
                 case 0 -> winLabel.setText("---------Draw---------");
                 case 1 -> winLabel.setText("---Winner :  you! Congratulation!---");
                 case 2 -> winLabel.setText("---Winner :  opposite---");
+                default -> System.out.println("Wrong in showWinInfo switch");
             }
         });
     }
