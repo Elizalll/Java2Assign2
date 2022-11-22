@@ -11,10 +11,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
-
             fxmlLoader.setLocation(getClass().getClassLoader().getResource("mainUI.fxml"));
             Pane root = fxmlLoader.load();
-            primaryStage.setTitle("1");
+            primaryStage.setTitle("1");//title
             primaryStage.setScene(new Scene(root));
             primaryStage.setResizable(false);
             primaryStage.show();
